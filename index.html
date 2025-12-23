@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サイゼリヤ メメニュー番号ルーレット</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #fdfdfd;
+        }
+
+        /* サイゼリヤカラー */
+        .saize-green { color: #008d41; }
+        .bg-saize-green { background-color: #008d41; }
+        .saize-red { color: #d52b1e; }
+        .bg-saize-red { background-color: #d52b1e; }
+
+        .roulette-container {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        /* アニメーション */
+        @keyframes popIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+
+        .animate-decision {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
+
+    <!-- メインコンテナ -->
+    <div class="w-full max-w-md bg-white rounded-2xl overflow-hidden border-2 border-green-700 roulette-container relative">
+        
+        <!-- ヘッダー -->
+        <div class="bg-saize-green text-white p-4 text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-full opacity-10" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, #fff 10px, #fff 20px);"></div>
+            <h1 class="text-2xl font-bold relative z-10 tracking-wider">サイゼリヤ ルーレット</h1>
+            <p class="text-xs opacity-90 mt-1 tracking-tight">注文する番号を運に任せる</p>
+        </div>
+
+        <!-- ルーレット表示エリア -->
+        <div class="p-8 flex flex-col items-center">
+            
+            <!-- 番号表示（メイン） -->
+            <div class="my-10 text-center">
+                <span class="text-gray-400 text-xl font-bold block mb-2 tracking-widest">No.</span>
+                <span id="menu-number" class="text-9xl font-black text-gray-800 font-mono tracking-tighter leading-none transition-all duration-75">0000</span>
+            </div>
+
+            <!-- 操作ボタン -->
+            <div class="w-full">
+                <button id="spin-btn" onclick="startRoulette()" class="w-full py-5 px-6 bg-saize-red hover:bg-red-700 active:scale-95 transition-all text-white rounded-xl shadow-lg font-bold text-xl flex items-center justify-center gap-2">
+                    <i class="fas fa-utensils"></i>
+                    メニューを決める
+                </button>
+                
+                <button id="stop-btn" onclick="stopRoulette()" class="hidden w-full py-5 px-6 bg-gray-800 hover:bg-gray-900 active:scale-95 transition-all text-white rounded-xl shadow-lg font-bold text-xl flex items-center justify-center gap-2">
+                    <i class="fas fa-stop"></i>
+                    ストップ！
+                </button>
+            </div>
+        </div>
+
+        <!-- 履歴エリア -->
+        <div class="bg-gray-50 border-t border-gray-200 p-4">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">履歴</h3>
+                <button onclick="clearHistory()" class="text-[10px] text-gray-400 hover:text-red-500">クリア</button>
+            </div>
+            <ul id="history-list" class="grid grid-cols-5 gap-2 max-h-40 overflow-y-auto pr-1">
+                <li id="no-history" class="col-span-5 text-gray-400 text-center text-xs py-2 italic">履歴なし</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 補足情報 -->
+    <p class="mt-4 text-[10px] text-gray-400 text-center">
+        ※ 実際のメニュー番号は店舗のメニュー表でご確認ください。
+    </p>
+
+    <script>
+        /**
+         * サイゼリヤメニュー対応表（更新済み）
+         */
+        const menuItems = [
+            { name: "辛味チキン", number: "1401", price: "300", category: "前菜", tier: "A" },
+            { name: "アロスティチーニ", number: "1402", price: "400", category: "前菜", tier: "D" },
+            { name: "ほうれん草のソテー", number: "1403", price: "200", category: "前菜", tier: "A" },
+            { name: "ポップコーンシュリンプ", number: "1404", price: "300", category: "前菜", tier: "B" },
+            { name: "エスカルゴのオーブン焼き", number: "1405", price: "400", category: "前菜", tier: "A" },
+            { name: "小エビのカクテル", number: "1406", price: "280", category: "前菜", tier: "C" },
+            { name: "チョリソー", number: "1407", price: "400", category: "前菜", tier: "B" },
+            { name: "蒸し鶏の香味ソース", number: "1408", price: "280", category: "前菜", tier: "C" },
+            { name: "ムール貝のガーリック焼き", number: "1410", price: "400", category: "前菜", tier: "C" },
+            { name: "キャロットラペ", number: "1413", price: "200", category: "前菜", tier: "D" },
+            { name: "ポテトのグリル", number: "1416", price: "300", category: "前菜", tier: "A" },
+            { name: "バッファローモッツァレラのカプレーゼ", number: "1417", price: "430", category: "前菜", tier: "B" },
+            { name: "ハモン･セラーノ", number: "1422", price: "320", category: "前菜", tier: "C" },
+            { name: "生ハムとバッファローモッツァレラの盛り合わせ", number: "1423", price: "500", category: "前菜", tier: "B" },
+            { name: "柔らか青豆の温サラダ", number: "1425", price: "200", category: "前菜", tier: "C" },
+            { name: "小エビのサラダ", number: "1202", price: "350", category: "サラダ", tier: "B" },
+            { name: "わかめのサラダ", number: "1205", price: "350", category: "サラダ", tier: "D" },
+            { name: "チキンのサラダ", number: "1209", price: "350", category: "サラダ", tier: "B" },
+            { name: "コーンクリームスープ", number: "1301", price: "150", category: "スープ", tier: "A" },
+            { name: "田舎風ミネストローネ", number: "1305", price: "300", category: "スープ", tier: "A" },
+            { name: "玉ねぎのズッパ", number: "1309", price: "300", category: "スープ", tier: "S" },
+            { name: "バッファローモッツァレラのマルゲリータピザ", number: "2203", price: "400", category: "ピザ", tier: "A" },
+            { name: "野菜ときのこのピザ", number: "2204", price: "400", category: "ピザ", tier: "A" },
+            { name: "たっぷりコーンのピザ", number: "2206", price: "400", category: "ピザ", tier: "B" },
+            { name: "ソーセージピザ", number: "2208", price: "400", category: "ピザ", tier: "C" },
+            { name: "ミラノ風ドリア", number: "2101", price: "300", category: "ドリア、グラタン", tier: "S" },
+            { name: "半熟卵のミラノ風ドリア", number: "2103", price: "350", category: "ドリア、グラタン", tier: "A" },
+            { name: "焼きチーズミラノ風ドリア", number: "2108", price: "350", category: "ドリア、グラタン", tier: "S" },
+            { name: "タラコとポップコーンシュリンプのドリア", number: "2110", price: "400", category: "ドリア、グラタン", tier: "A" },
+            { name: "ポップコーンシュリンプとタラコのクリームグラタン", number: "2115", price: "430", category: "ドリア、グラタン", tier: "A" },
+            { name: "タラコソースシシリー風", number: "2301", price: "400", category: "パスタ", tier: "B" },
+            { name: "ペペロンチーノ", number: "2303", price: "300", category: "パスタ", tier: "S" },
+            { name: "パルマ風スパゲッティ", number: "2304", price: "400", category: "パスタ", tier: "A" },
+            { name: "カルボナーラ", number: "2305", price: "500", category: "パスタ", tier: "A" },
+            { name: "ミートソースボロニア風", number: "2306", price: "400", category: "パスタ", tier: "A" },
+            { name: "スープ入り塩味ボンゴレ", number: "2310", price: "500", category: "パスタ", tier: "A" },
+            { name: "半熟卵のミートソースボロニア風", number: "2316", price: "450", category: "パスタ", tier: "B" },
+            { name: "半熟卵のペペロンチーノ", number: "2317", price: "350", category: "パスタ", tier: "B" },
+            { name: "半熟卵のカルボナーラ", number: "2318", price: "550", category: "パスタ", tier: "B" },
+            { name: "小エビのタラコソース", number: "2320", price: "540", category: "パスタ", tier: "B" },
+            { name: "きのことほうれん草のクリームスパゲッティ", number: "2321", price: "600", category: "パスタ", tier: "B" },
+            { name: "ペンネアラビアータ", number: "2325", price: "430", category: "パスタ", tier: "B" },
+            { name: "イカの墨入りセピアソース", number: "2328", price: "500", category: "パスタ", tier: "A" },
+            { name: "若鶏のディアボラ風", number: "2402", price: "500", category: "肉料理", tier: "S" },
+            { name: "イタリアンハンバーグ", number: "2403", price: "500", category: "肉料理", tier: "S" },
+            { name: "柔らかチキンのチーズ焼き", number: "2404", price: "500", category: "肉料理", tier: "A" },
+            { name: "ハンバーグステーキ", number: "2406", price: "400", category: "肉料理", tier: "B" },
+            { name: "ディアボラ風ハンバーグ", number: "2407", price: "500", category: "肉料理", tier: "A" },
+            { name: "ミックスグリル", number: "2418", price: "650", category: "肉料理", tier: "B" },
+            { name: "ラムのランプステーキ", number: "2417", price: "1090", category: "肉料理", tier: "A" },
+            { name: "ライス", number: "3101", price: "150", category: "ライス、パン", tier: "C" },
+            { name: "ラージライス", number: "3102", price: "200", category: "ライス、パン", tier: "B" },
+            { name: "スモールライス", number: "3103", price: "100", category: "ライス、パン", tier: "Ｄ" },
+            { name: "フォッカチオ", number: "3110", price: "150", category: "ライス、パン", tier: "Ｃ" },
+            { name: "ガーリックフォッカチオ", number: "3111", price: "200", category: "ライス、パン", tier: "A" },
+            { name: "シナモンフォッカチオ", number: "3112", price: "200", category: "ライス、パン", tier: "C" },
+            { name: "タラコフォッカチオ", number: "3113", price: "250", category: "ライス、パン", tier: "A" },
+            { name: "チーズフォッカチオ", number: "3114", price: "250", category: "ライス、パン", tier: "A" },
+            { name: "ティラミス クラシコ", number: "3201", price: "300", category: "デザート", tier: "B" },
+            { name: "ミルクジェラート", number: "3205", price: "250", category: "デザート", tier: "A" },
+            { name: "イタリアンプリン", number: "3206", price: "250", category: "デザート", tier: "S" },
+            { name: "チョコケーキ", number: "3207", price: "300", category: "デザート", tier: "C" },
+            { name: "プリンとティラミス クラシコの盛り合わせ", number: "3212", price: "500", category: "デザート", tier: "A" },
+            { name: "トリフアイスクリーム", number: "3213", price: "350", category: "デザート", tier: "A" },
+            { name: "ジェラート＆シナモンフォッカチオ", number: "3215", price: "450", category: "デザート", tier: "A" },
+            { name: "コーヒーゼリー＆ミルクジェラート", number: "3215", price: "350", category: "デザート", tier: "B" },
+            { name: "チョコレートケーキ＆ミルクジェラート", number: "3216", price: "500", category: "デザート", tier: "C" },
+            { name: "トッピング半熟卵", number: "4301", price: "50", category: "その他", tier: "D" },
+            { name: "トッピング粉チーズ", number: "4307", price: "100", category: "その他", tier: "C" },
+            { name: "セットドリンクバー", number: "5101", price: "200", category: "その他", tier: "B" },
+            { name: "ドンラファエロ", number: "3413", price: "1000", category: "ワイン", tier: "SS" },
+            { name: "ランブルスコロゼ", number: "3412", price: "1000", category: "ワイン", tier: "SS" },
+            { name: "ランブルスコセッコ", number: "3414", price: "1000", category: "ワイン", tier: "SS" },
+            { name: "ベルデッキオ", number: "3415", price: "1000", category: "ワイン", tier: "SS" },
+            { name: "キャンティ", number: "3416", price: "1000", category: "ワイン", tier: "SS" },
+            { name: "キャンティルフィナリゼルバ", number: "3419", price: "2000", category: "ワイン", tier: "SSS" },
+            { name: "生ビールジョッキ", number: "3301", price: "400", category: "ビール", tier: "SS" },
+            { name: "生ビールグラス", number: "3302", price: "280", category: "ビール", tier: "SS" },
+            { name: "ノンアルコールビール", number: "3303", price: "250", category: "ビール", tier: "D" },
+            { name: "キリン氷結シチリア産レモン", number: "3304", price: "350", category: "サワー", tier: "B" },
+            { name: "グラッパ", number: "3306", price: "300", category: "食後酒", tier: "SSS" },
+            { name: "グラスワイン120赤", number: "3401", price: "100", category: "ワイン", tier: "S" },
+            { name: "グラスワイン120白", number: "3402", price: "100", category: "ワイン", tier: "S" },
+            { name: "デカンタ小250赤", number: "3403", price: "200", category: "ワイン", tier: "S" },
+            { name: "デカンタ小250白", number: "3404", price: "200", category: "ワイン", tier: "S" },
+            { name: "デカンタ大500赤", number: "3405", price: "400", category: "ワイン", tier: "S" },
+            { name: "デカンタ大500白", number: "3406", price: "400", category: "ワイン", tier: "S" },
+            { name: "マグナム1500赤", number: "3407", price: "1100", category: "ワイン", tier: "SS" },
+            { name: "マグナム1500白", number: "3408", price: "1100", category: "ワイン", tier: "SS" }
+        ];
+
+        let intervalId = null;
+        let isSpinning = false;
+        let history = [];
+
+        // DOM要素
+        const numberEl = document.getElementById('menu-number');
+        const spinBtn = document.getElementById('spin-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const historyList = document.getElementById('history-list');
+
+        function startRoulette() {
+            if (isSpinning) return;
+            
+            isSpinning = true;
+            spinBtn.classList.add('hidden');
+            stopBtn.classList.remove('hidden');
+
+            // 演出リセット
+            numberEl.classList.remove('text-saize-red', 'animate-decision');
+            numberEl.classList.add('text-gray-800');
+
+            // 高速回転
+            intervalId = setInterval(() => {
+                const randomItem = menuItems[Math.floor(Math.random() * menuItems.length)];
+                numberEl.textContent = randomItem.number;
+            }, 50);
+        }
+
+        function stopRoulette() {
+            if (!isSpinning) return;
+            clearInterval(intervalId);
+            
+            // 減速演出
+            let speed = 50;
+            const slowdown = () => {
+                const randomItem = menuItems[Math.floor(Math.random() * menuItems.length)];
+                numberEl.textContent = randomItem.number;
+                
+                speed *= 1.3;
+                if (speed < 500) {
+                    setTimeout(slowdown, speed);
+                } else {
+                    finishRoulette();
+                }
+            };
+            slowdown();
+        }
+
+        function finishRoulette() {
+            isSpinning = false;
+            stopBtn.classList.add('hidden');
+            spinBtn.classList.remove('hidden');
+            spinBtn.innerHTML = '<i class="fas fa-redo"></i> もう一度決める';
+            
+            // 最終決定
+            const finalItem = menuItems[Math.floor(Math.random() * menuItems.length)];
+            numberEl.textContent = finalItem.number;
+            
+            // 決定エフェクト
+            numberEl.classList.remove('text-gray-800');
+            numberEl.classList.add('text-saize-red', 'animate-decision');
+            
+            addToHistory(finalItem.number);
+        }
+
+        function addToHistory(num) {
+            const noHistoryEl = document.getElementById('no-history');
+            if (noHistoryEl) noHistoryEl.remove();
+
+            history.unshift(num);
+            
+            const li = document.createElement('li');
+            li.className = "bg-[#7C5D4B] rounded flex items-center justify-center py-2 shadow-sm border border-[#6b4f3f] animate-pulse";
+            li.innerHTML = `<span class="font-mono font-bold text-sm text-white">${num}</span>`;
+            
+            setTimeout(() => li.classList.remove('animate-pulse'), 500);
+            historyList.prepend(li);
+        }
+
+        function clearHistory() {
+            history = [];
+            historyList.innerHTML = '<li id="no-history" class="col-span-5 text-gray-400 text-center text-xs py-2 italic">履歴なし</li>';
+        }
+    </script>
+</body>
+</html>
