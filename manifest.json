@@ -1,0 +1,15 @@
+{
+  "name": "サイゼリヤ1000円ガチャ",
+  "short_name": "サイゼガチャ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2E8540",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
