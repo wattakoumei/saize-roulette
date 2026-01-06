@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-8HSQ4XHW8Y"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-      gtag('config', 'G-8HSQ4XHW8Y');
+        gtag('config', 'G-8HSQ4XHW8Y');
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,10 +25,21 @@
         }
 
         /* サイゼリヤカラー */
-        .saize-green { color: #008d41; }
-        .bg-saize-green { background-color: #008d41; }
-        .saize-red { color: #d52b1e; }
-        .bg-saize-red { background-color: #d52b1e; }
+        .saize-green {
+            color: #008d41;
+        }
+
+        .bg-saize-green {
+            background-color: #008d41;
+        }
+
+        .saize-red {
+            color: #d52b1e;
+        }
+
+        .bg-saize-red {
+            background-color: #d52b1e;
+        }
 
         .roulette-container {
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -35,46 +47,84 @@
 
         /* アニメーション */
         @keyframes popIn {
-            0% { transform: scale(0.9); opacity: 0; }
-            100% { transform: scale(1.1); opacity: 1; }
+            0% {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1.1);
+                opacity: 1;
+            }
         }
 
         .animate-decision {
             animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
+
+        /* Sランク確定演出 */
+        .emoji-rain {
+            position: fixed;
+            top: -50px;
+            left: 0;
+            pointer-events: none;
+            z-index: 9999;
+            font-size: 2rem;
+            animation-name: fall;
+            animation-duration: 2s;
+            animation-timing-function: linear;
+            animation-fill-mode: forwards;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            100% {
+                transform: translateY(calc(100vh + 100px)) rotate(360deg);
+            }
+        }
     </style>
     <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
     <link rel="manifest" href="./manifest.json">
 </head>
+
 <body class="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
 
     <!-- メインコンテナ -->
-    <div class="w-full max-w-md bg-white rounded-2xl overflow-hidden border-2 border-green-700 roulette-container relative">
-        
+    <div
+        class="w-full max-w-md bg-white rounded-2xl overflow-hidden border-2 border-green-700 roulette-container relative">
+
         <!-- ヘッダー -->
         <div class="bg-saize-green text-white p-4 text-center relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-full opacity-10" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, #fff 10px, #fff 20px);"></div>
+            <div class="absolute top-0 left-0 w-full h-full opacity-10"
+                style="background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, #fff 10px, #fff 20px);">
+            </div>
             <h1 class="text-2xl font-bold relative z-10 tracking-wider">サイゼリヤ ルーレット</h1>
             <p class="text-xs opacity-90 mt-1 tracking-tight">注文する番号を運に任せる</p>
         </div>
 
         <!-- ルーレット表示エリア -->
         <div class="p-8 flex flex-col items-center">
-            
+
             <!-- 番号表示（メイン） -->
             <div class="my-10 text-center">
                 <span class="text-gray-400 text-xl font-bold block mb-2 tracking-widest">No.</span>
-                <span id="menu-number" class="text-9xl font-black text-gray-800 font-mono tracking-tighter leading-none transition-all duration-75">0000</span>
+                <span id="menu-number"
+                    class="text-9xl font-black text-gray-800 font-mono tracking-tighter leading-none transition-all duration-75">0000</span>
             </div>
 
             <!-- 操作ボタン -->
             <div class="w-full">
-                <button id="spin-btn" onclick="startRoulette()" class="w-full py-5 px-6 bg-saize-red hover:bg-red-700 active:scale-95 transition-all text-white rounded-xl shadow-lg font-bold text-xl flex items-center justify-center gap-2">
+                <button id="spin-btn" onclick="startRoulette()"
+                    class="w-full py-5 px-6 bg-saize-red hover:bg-red-700 active:scale-95 transition-all text-white rounded-xl shadow-lg font-bold text-xl flex items-center justify-center gap-2">
                     <i class="fas fa-utensils"></i>
                     メニューを決める
                 </button>
-                
-                <button id="stop-btn" onclick="stopRoulette()" class="hidden w-full py-5 px-6 bg-gray-800 hover:bg-gray-900 active:scale-95 transition-all text-white rounded-xl shadow-lg font-bold text-xl flex items-center justify-center gap-2">
+
+                <button id="stop-btn" onclick="stopRoulette()"
+                    class="hidden w-full py-5 px-6 bg-gray-800 hover:bg-gray-900 active:scale-95 transition-all text-white rounded-xl shadow-lg font-bold text-xl flex items-center justify-center gap-2">
                     <i class="fas fa-stop"></i>
                     ストップ！
                 </button>
@@ -155,8 +205,8 @@
             { name: "ラムのランプステーキ", number: "2417", price: "1090", category: "肉料理", tier: "A" },
             { name: "ライス", number: "3101", price: "150", category: "ライス、パン", tier: "C" },
             { name: "ラージライス", number: "3102", price: "200", category: "ライス、パン", tier: "B" },
-            { name: "スモールライス", number: "3103", price: "100", category: "ライス、パン", tier: "Ｄ" },
-            { name: "フォッカチオ", number: "3110", price: "150", category: "ライス、パン", tier: "Ｃ" },
+            { name: "スモールライス", number: "3103", price: "100", category: "ライス、パン", tier: "D" },
+            { name: "フォッカチオ", number: "3110", price: "150", category: "ライス、パン", tier: "C" },
             { name: "ガーリックフォッカチオ", number: "3111", price: "200", category: "ライス、パン", tier: "A" },
             { name: "シナモンフォッカチオ", number: "3112", price: "200", category: "ライス、パン", tier: "C" },
             { name: "タラコフォッカチオ", number: "3113", price: "250", category: "ライス、パン", tier: "A" },
@@ -206,7 +256,7 @@
 
         function startRoulette() {
             if (isSpinning) return;
-            
+
             isSpinning = true;
             spinBtn.classList.add('hidden');
             stopBtn.classList.remove('hidden');
@@ -225,37 +275,48 @@
         function stopRoulette() {
             if (!isSpinning) return;
             clearInterval(intervalId);
-            
+
             // 減速演出
             let speed = 50;
             const slowdown = () => {
                 const randomItem = menuItems[Math.floor(Math.random() * menuItems.length)];
                 numberEl.textContent = randomItem.number;
-                
+
                 speed *= 1.3;
                 if (speed < 500) {
                     setTimeout(slowdown, speed);
                 } else {
-                    finishRoulette();
+                    finishRoulette(randomItem);
                 }
             };
             slowdown();
         }
 
-        function finishRoulette() {
+        function finishRoulette(finalItem) {
             isSpinning = false;
             stopBtn.classList.add('hidden');
             spinBtn.classList.remove('hidden');
             spinBtn.innerHTML = '<i class="fas fa-redo"></i> もう一度決める';
-            
-            // 最終決定
-            const finalItem = menuItems[Math.floor(Math.random() * menuItems.length)];
+
+            // 最終決定 (引数で受け取るため再抽選しない)
+            // const finalItem = menuItems[Math.floor(Math.random() * menuItems.length)];
             numberEl.textContent = finalItem.number;
-            
+
+            // ランク別演出
+            const tierEmojis = {
+                'SSS': '💕',
+                'SS': '😘',
+                'S': '😍',
+                'D': '😭'
+            };
+            if (tierEmojis[finalItem.tier]) {
+                rainEmojis(tierEmojis[finalItem.tier]);
+            }
+
             // 決定エフェクト
             numberEl.classList.remove('text-gray-800');
             numberEl.classList.add('text-saize-red', 'animate-decision');
-            
+
             addToHistory(finalItem.number);
         }
 
@@ -264,11 +325,11 @@
             if (noHistoryEl) noHistoryEl.remove();
 
             history.unshift(num);
-            
+
             const li = document.createElement('li');
             li.className = "bg-[#7C5D4B] rounded flex items-center justify-center py-2 shadow-sm border border-[#6b4f3f] animate-pulse";
             li.innerHTML = `<span class="font-mono font-bold text-sm text-white">${num}</span>`;
-            
+
             setTimeout(() => li.classList.remove('animate-pulse'), 500);
             historyList.prepend(li);
         }
@@ -276,6 +337,39 @@
         function clearHistory() {
             history = [];
             historyList.innerHTML = '<li id="no-history" class="col-span-5 text-gray-400 text-center text-xs py-2 italic">履歴なし</li>';
+        }
+
+        /**
+         * Sランク確定演出
+         */
+        function rainEmojis(emoji) {
+            const container = document.body;
+            const duration = 3000; // 3秒間
+            const emojisPerInterval = 3;
+
+            const rainInterval = setInterval(() => {
+                for (let i = 0; i < emojisPerInterval; i++) {
+                    const emojiEl = document.createElement('span');
+                    emojiEl.classList.add('emoji-rain');
+                    emojiEl.textContent = emoji;
+                    emojiEl.style.left = `${Math.random() * 100}vw`;
+                    emojiEl.style.animationDuration = `${2 + Math.random() * 2}s`; // 落下速度をランダムに
+                    emojiEl.style.fontSize = `${1.5 + Math.random()}rem`;
+                    emojiEl.style.opacity = Math.random() * 0.5 + 0.5;
+
+                    container.appendChild(emojiEl);
+
+                    // アニメーション終了後に要素を削除
+                    setTimeout(() => {
+                        emojiEl.remove();
+                    }, 4000);
+                }
+            }, 100);
+
+            // 指定時間後に雨を止める
+            setTimeout(() => {
+                clearInterval(rainInterval);
+            }, duration);
         }
     </script>
     <script>
@@ -290,4 +384,5 @@
         }
     </script>
 </body>
+
 </html>
